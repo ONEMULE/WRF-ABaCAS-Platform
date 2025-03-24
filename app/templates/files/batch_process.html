@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 批量处理{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>批量处理气象数据</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>批量处理设置</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.batch_process') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.action.label(class="form-label") }}
+                            {{ form.action(class="form-select") }}
+                            {% for error in form.action.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.file_ids.label(class="form-label") }}
+                            {{ form.file_ids(class="form-control", id="file_ids") }}
+                            {% for error in form.file_ids.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">输入文件ID，多个ID用逗号分隔。例如：1,2,3</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.parameters.label(class="form-label") }}
+                            {{ form.parameters(class="form-control", rows=5) }}
+                            {% for error in form.parameters.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">
+                                输入JSON格式的参数。根据不同的操作类型，参数格式会有所不同。
+                                <button type="button" class="btn btn-sm btn-link" data-bs-toggle="collapse" data-bs-target="#parametersHelp">
+                                    查看参数示例
+                                </button>
+                            </div>
+                            <div class="collapse mt-2" id="parametersHelp">
+                                <div class="card card-body">
+                                    <h6>参数示例：</h6>
+                                    <ul class="nav nav-tabs" id="paramTabs" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="convert-tab" data-bs-toggle="tab" data-bs-target="#convert" type="button" role="tab">转换GRIB到NetCDF</button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="extract-tab" data-bs-toggle="tab" data-bs-target="#extract" type="button" role="tab">提取变量</button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content p-3" id="paramTabsContent">
+                                        <div class="tab-pane fade show active" id="convert" role="tabpanel">
+<pre>{
+  "output_format": "netcdf4",
+  "compression_level": 4,
+  "output_dir": "converted_files"
+}</pre>
+                                        </div>
+                                        <div class="tab-pane fade" id="extract" role="tabpanel">
+<pre>{
+  "variables": ["T", "U", "V", "PSFC"],
+  "output_dir": "extracted_vars"
+}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('main.file_list') }}" class="btn btn-outline-secondary">返回文件列表</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>最近的文件</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>文件名</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in recent_files %}
+                                <tr>
+                                    <td>{{ file.id }}</td>
+                                    <td>{{ file.filename }}</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-outline-primary add-file-btn" data-file-id="{{ file.id }}">
+                                            添加
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if not recent_files %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">暂无文件记录</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // 添加文件到ID列表
+    document.querySelectorAll('.add-file-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var fileId = this.getAttribute('data-file-id');
+            var fileIdsInput = document.getElementById('file_ids');
+            var currentIds = fileIdsInput.value.trim();
+            
+            if (currentIds) {
+                // 检查ID是否已存在
+                var ids = currentIds.split(',').map(function(id) { return id.trim(); });
+                if (!ids.includes(fileId)) {
+                    fileIdsInput.value = currentIds + ',' + fileId;
+                }
+            } else {
+                fileIdsInput.value = fileId;
+            }
+        });
+    });
+</script>
+{% endblock %}

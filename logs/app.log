@@ -1,0 +1,91 @@
+2025-03-14 11:31:34,164 - app - INFO - WRF Web Application startup
+2025-03-14 11:31:34,673 - app - INFO - WRF Web Application startup
+2025-03-14 11:31:35,229 - app - INFO - WRF Web Application startup
+2025-03-14 11:33:20,249 - app - INFO - WRF Web Application startup
+2025-03-14 11:33:20,811 - app - INFO - WRF Web Application startup
+2025-03-14 11:33:22,970 - app - ERROR - Exception on / [GET]
+Traceback (most recent call last):
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/app/routes.py", line 43, in index
+    return render_template('index.html')
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/flask/templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/flask/templating.py", line 131, in _render
+    rv = template.render(context)
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/app/templates/index.html", line 1, in top-level template code
+    {% extends "base.html" %}
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/app/templates/base.html", line 80, in top-level template code
+    <p class="mb-0">WRF模型控制系统 &copy; {{ now.year }}</p>
+    ^^^^^^^^^^^^^
+  File "/Users/luoxin/Desktop/Research/WebDevelopment/.venv/lib/python3.13/site-packages/jinja2/environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'now' is undefined
+2025-03-14 11:39:42,178 - app - INFO - WRF Web Application startup
+2025-03-14 11:39:42,701 - app - INFO - WRF Web Application startup
+2025-03-14 11:39:43,224 - app - INFO - WRF Web Application startup
+2025-03-14 12:00:45,406 - app - INFO - WRF Web Application startup
+2025-03-14 12:00:45,940 - app - INFO - WRF Web Application startup
+2025-03-14 12:00:46,481 - app - INFO - WRF Web Application startup
+2025-03-14 12:07:52,571 - app - INFO - WRF Web Application startup
+2025-03-14 12:07:53,116 - app - INFO - WRF Web Application startup
+2025-03-14 12:07:53,659 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:00,274 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:00,809 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:01,388 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:13,742 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:14,282 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:14,880 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:15,418 - app - INFO - WRF Web Application startup
+2025-03-14 12:16:16,032 - app - INFO - WRF Web Application startup
+2025-03-14 12:20:01,930 - app - INFO - WRF Web Application startup
+2025-03-14 12:21:42,401 - app - INFO - WRF Web Application startup
+2025-03-14 12:25:59,024 - app - INFO - WRF Web Application startup
+2025-03-14 12:26:15,692 - app - INFO - WRF Web Application startup
+2025-03-14 12:26:16,152 - app - INFO - WRF Web Application startup
+2025-03-14 12:30:39,961 - app - INFO - WRF Web Application startup
+2025-03-14 12:35:24,949 - app - INFO - WRF Web Application startup
+2025-03-14 12:35:37,365 - app - INFO - WRF Web Application startup
+2025-03-14 12:35:37,836 - app - INFO - WRF Web Application startup
+2025-03-14 12:50:05,109 - app - INFO - WRF Web Application startup
+2025-03-14 12:50:05,571 - app - INFO - WRF Web Application startup
+2025-03-14 12:59:24,515 - app - INFO - WRF Web Application startup
+2025-03-14 12:59:24,981 - app - INFO - WRF Web Application startup
+2025-03-14 13:12:21,873 - app - INFO - WRF Web Application startup
+2025-03-14 13:12:56,775 - app - INFO - WRF Web Application startup
+2025-03-14 13:12:57,288 - app - INFO - WRF Web Application startup
+2025-03-14 13:12:57,845 - app - INFO - WRF Web Application startup
+2025-03-14 13:12:58,424 - app - INFO - WRF Web Application startup
+2025-03-14 13:12:59,004 - app - INFO - WRF Web Application startup
+2025-03-14 13:12:59,512 - app - INFO - WRF Web Application startup
+2025-03-14 16:20:19,885 - app - INFO - WRF Web Application startup
+2025-03-14 16:20:20,408 - app - INFO - WRF Web Application startup
+2025-03-14 16:20:20,936 - app - INFO - WRF Web Application startup
+2025-03-14 16:20:21,462 - app - INFO - WRF Web Application startup
+2025-03-14 16:20:21,965 - app - INFO - WRF Web Application startup
+2025-03-14 16:26:22,645 - app - INFO - WRF Web Application startup
+2025-03-14 21:49:09,811 - app - INFO - WRF Web Application startup
+2025-03-14 21:49:10,384 - app - INFO - WRF Web Application startup
+2025-03-14 21:49:10,958 - app - INFO - WRF Web Application startup
+2025-03-14 21:49:11,477 - app - INFO - WRF Web Application startup
+2025-03-14 21:49:12,115 - app - INFO - WRF Web Application startup
+2025-03-15 11:12:02,612 - app - INFO - WRF Web Application startup
+2025-03-15 11:12:03,214 - app - INFO - WRF Web Application startup
+2025-03-15 11:18:47,529 - app - INFO - WRF Web Application startup
+2025-03-15 11:18:48,095 - app - INFO - WRF Web Application startup
+2025-03-15 11:18:48,626 - app - INFO - WRF Web Application startup
+2025-03-15 11:18:49,150 - app - INFO - WRF Web Application startup
+2025-03-15 11:18:49,683 - app - INFO - WRF Web Application startup
+2025-03-15 11:39:31,737 - app - INFO - WRF Web Application startup

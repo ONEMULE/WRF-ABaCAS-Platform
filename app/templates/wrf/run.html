@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 运行WRF模型{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>运行WRF模型</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>提交WRF运行任务</h5>
+        </div>
+        <div class="card-body">
+            {% if form.namelist_id.choices|length == 0 %}
+            <div class="alert alert-warning">
+                <p>您还没有上传Namelist配置。请先 <a href="{{ url_for('main.namelist_upload') }}">上传Namelist配置</a>。</p>
+            </div>
+            {% elif form.input_files.choices|length == 0 %}
+            <div class="alert alert-warning">
+                <p>您还没有上传气象数据文件。请先 <a href="{{ url_for('main.file_upload') }}">上传气象数据文件</a>。</p>
+            </div>
+            {% else %}
+            <form method="post">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                    {% if form.name.errors %}
+                    <div class="text-danger">
+                        {% for error in form.name.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.namelist_id.label(class="form-label") }}
+                    {{ form.namelist_id(class="form-select") }}
+                    {% if form.namelist_id.errors %}
+                    <div class="text-danger">
+                        {% for error in form.namelist_id.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.input_files.label(class="form-label") }}
+                    {{ form.input_files(class="form-select", size=10, multiple=true) }}
+                    {% if form.input_files.errors %}
+                    <div class="text-danger">
+                        {% for error in form.input_files.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="form-text">按住Ctrl键可以选择多个文件</div>
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", rows=3) }}
+                    {% if form.description.errors %}
+                    <div class="text-danger">
+                        {% for error in form.description.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+                    <a href="{{ url_for('main.wrf_task_list') }}" class="btn btn-outline-secondary">返回任务列表</a>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

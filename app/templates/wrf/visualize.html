@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 结果可视化{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>WRF结果可视化</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>任务 #{{ task.task_id }}: {{ task.name }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th>任务ID</th>
+                                <td>{{ task.task_id }}</td>
+                            </tr>
+                            <tr>
+                                <th>状态</th>
+                                <td>
+                                    <span class="badge bg-success">已完成</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>完成时间</th>
+                                <td>{{ task.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if viz_results %}
+    <div class="card">
+        <div class="card-header">
+            <h5>可视化结果</h5>
+        </div>
+        <div class="card-body">
+            <ul class="nav nav-tabs" id="vizTabs" role="tablist">
+                {% for category, images in viz_results.items() %}
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link {% if loop.first %}active{% endif %}" 
+                            id="{{ category }}-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#{{ category }}" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="{{ category }}" 
+                            aria-selected="{% if loop.first %}true{% else %}false{% endif %}">
+                        {{ category }}
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            <div class="tab-content mt-3" id="vizTabsContent">
+                {% for category, images in viz_results.items() %}
+                <div class="tab-pane fade {% if loop.first %}show active{% endif %}" 
+                     id="{{ category }}" 
+                     role="tabpanel" 
+                     aria-labelledby="{{ category }}-tab">
+                    
+                    <div class="row">
+                        {% for image in images %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6>{{ image.title }}</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <img src="{{ image.url }}" alt="{{ image.title }}" class="img-fluid">
+                                </div>
+                                <div class="card-footer">
+                                    <a href="{{ image.url }}" download class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-download"></i> 下载图片
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('main.wrf_task_status', task_id=task.task_id) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> 返回任务详情
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <p class="mb-0">没有找到可视化结果。请确保任务已成功完成。</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

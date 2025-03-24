@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 上传Namelist配置{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>上传Namelist配置</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>上传WRF Namelist配置文件</h5>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.namelist_input.label(class="form-label") }}
+                    {{ form.namelist_input(class="form-control") }}
+                    {% if form.namelist_input.errors %}
+                    <div class="text-danger">
+                        {% for error in form.namelist_input.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="form-text">请上传WRF的namelist.input配置文件</div>
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.namelist_wps.label(class="form-label") }}
+                    {{ form.namelist_wps(class="form-control") }}
+                    {% if form.namelist_wps.errors %}
+                    <div class="text-danger">
+                        {% for error in form.namelist_wps.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="form-text">请上传WRF的namelist.wps配置文件</div>
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", rows=3) }}
+                    {% if form.description.errors %}
+                    <div class="text-danger">
+                        {% for error in form.description.errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+                    <a href="{{ url_for('main.namelist_list') }}" class="btn btn-outline-secondary">返回列表</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

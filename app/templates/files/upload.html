@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 上传文件{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>上传气象数据文件</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>文件上传</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.file_upload') }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.files.label(class="form-label") }}
+                    {{ form.files(class="form-control", multiple=True) }}
+                    {% for error in form.files.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">支持同时上传多个文件。</div>
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.file_type.label(class="form-label") }}
+                    {{ form.file_type(class="form-select") }}
+                    {% for error in form.file_type.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.dataset_id.label(class="form-label") }}
+                    {{ form.dataset_id(class="form-select") }}
+                    {% for error in form.dataset_id.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">
+                        可选择将上传的文件添加到现有数据集。
+                        <a href="{{ url_for('main.dataset_create') }}">创建新数据集</a>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h6>文件命名建议</h6>
+                    <p>为了系统能够自动识别文件的日期和预报时间，建议使用标准命名格式：</p>
+                    <ul>
+                        <li>GFS数据: gfs.tHHz.pgrb2.0p25.fFFF.grib2 (HH表示时次，FFF表示预报时间)</li>
+                        <li>WRF输入: wrfinput_dNN_YYYY-MM-DD_HH:MM:SS</li>
+                        <li>WRF输出: wrfout_dNN_YYYY-MM-DD_HH:MM:SS</li>
+                    </ul>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('main.file_list') }}" class="btn btn-outline-secondary">返回文件列表</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

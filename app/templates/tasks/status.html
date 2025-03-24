@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 任务状态{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>任务状态</h1>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>任务 #{{ task.id }}: {{ task.description }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th>任务ID</th>
+                                <td>{{ task.id }}</td>
+                            </tr>
+                            <tr>
+                                <th>任务类型</th>
+                                <td>{{ task.task_type }}</td>
+                            </tr>
+                            <tr>
+                                <th>描述</th>
+                                <td>{{ task.description }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th>状态</th>
+                                <td>
+                                    {% if task.status == 'pending' %}
+                                    <span class="badge bg-secondary">等待中</span>
+                                    {% elif task.status == 'running' %}
+                                    <span class="badge bg-primary">运行中</span>
+                                    {% elif task.status == 'completed' %}
+                                    <span class="badge bg-success">已完成</span>
+                                    {% elif task.status == 'failed' %}
+                                    <span class="badge bg-danger">失败</span>
+                                    {% else %}
+                                    <span class="badge bg-info">{{ task.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>创建时间</th>
+                                <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                            </tr>
+                            <tr>
+                                <th>开始时间</th>
+                                <td>
+                                    {% if task.start_time %}
+                                    {{ task.start_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>结束时间</th>
+                                <td>
+                                    {% if task.end_time %}
+                                    {{ task.end_time.strftime('%Y-%m-%d %H:%M:%S') }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>执行时间</th>
+                                <td>
+                                    {% if task.start_time and task.end_time %}
+                                    {{ (task.end_time - task.start_time).total_seconds() | round(2) }} 秒
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {% if task.parameters %}
+            <div class="mt-3">
+                <h6>参数</h6>
+                <pre class="bg-light p-3 rounded"><code>{{ task.parameters }}</code></pre>
+            </div>
+            {% endif %}
+
+            {% if task.result %}
+            <div class="mt-3">
+                <h6>结果</h6>
+                <pre class="bg-light p-3 rounded"><code>{{ task.result }}</code></pre>
+            </div>
+            {% endif %}
+
+            {% if task.status == 'running' %}
+            <div class="alert alert-info mt-3">
+                <p class="mb-0">
+                    <i class="fas fa-spinner fa-spin"></i> 任务正在运行中，页面将每10秒自动刷新...
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-footer">
+            <div class="d-flex justify-content-between">
+                <div>
+                    {% if task.status == 'completed' and task.task_type.startswith('batch_') %}
+                    <a href="{{ url_for('main.file_list') }}" class="btn btn-success">
+                        <i class="fas fa-file"></i> 查看处理后的文件
+                    </a>
+                    {% endif %}
+                </div>
+                <div>
+                    <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary">
+                        返回任务列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if task.status == 'running' %}
+<script>
+    // 如果任务正在运行，每10秒自动刷新页面
+    setTimeout(function() {
+        location.reload();
+    }, 10000);
+</script>
+{% endif %}
+{% endblock %}

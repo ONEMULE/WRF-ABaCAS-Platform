@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - Namelist配置详情{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Namelist配置详情</h1>
+        <a href="{{ url_for('main.namelist_list') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> 返回列表
+        </a>
+    </div>
+    <div class="card mb-4">
+                <div class="card-header">
+            <h5 class="mb-0">基本信息</h5>
+                </div>
+                <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">名称</dt>
+                <dd class="col-sm-9">{{ namelist.name }}</dd>
+
+                <dt class="col-sm-3">创建时间</dt>
+                <dd class="col-sm-9">{{ namelist.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+
+                <dt class="col-sm-3">描述</dt>
+                <dd class="col-sm-9">{{ namelist.description or '无描述' }}</dd>
+            </dl>
+            </div>
+        </div>
+        
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">namelist.input</h5>
+                </div>
+                <div class="card-body">
+                    <pre class="border rounded bg-light p-3"><code>{{ namelist_input_content or '文件内容不可用' }}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">namelist.wps</h5>
+    </div>
+                <div class="card-body">
+                    <pre class="border rounded bg-light p-3"><code>{{ namelist_wps_content or '文件内容不可用' }}</code></pre>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <div class="mt-4">
+        <button class="btn btn-success">
+            <i class="fas fa-play"></i> 使用此配置创建任务
+        </button>
+
+        <button class="btn btn-danger">
+            <i class="fas fa-trash"></i> 删除配置
+        </button>
+    </div>
+</div>
+{% endblock %}

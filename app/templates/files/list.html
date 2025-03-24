@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 气象数据文件{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>气象数据文件</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>搜索文件</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('main.file_list') }}">
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ search_form.keyword.label(class="form-label") }}
+                        {{ search_form.keyword(class="form-control") }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ search_form.file_type.label(class="form-label") }}
+                        {{ search_form.file_type(class="form-control") }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.date_from.label(class="form-label") }}
+                        {{ search_form.date_from(class="form-control", type="date") }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ search_form.date_to.label(class="form-label") }}
+                        {{ search_form.date_to(class="form-control", type="date") }}
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        {{ search_form.submit(class="btn btn-primary w-100") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between mb-3">
+        <div>
+            <a href="{{ url_for('main.file_upload') }}" class="btn btn-success">
+                <i class="fas fa-upload"></i> 上传文件
+            </a>
+            <a href="{{ url_for('main.batch_process') }}" class="btn btn-primary">
+                <i class="fas fa-cogs"></i> 批量处理
+            </a>
+        </div>
+        <div>
+            <a href="{{ url_for('main.dataset_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-database"></i> 数据集管理
+            </a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>文件列表</h5>
+        </div>
+        <div class="card-body">
+            {% if files.items %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>文件名</th>
+                            <th>类型</th>
+                            <th>数据日期</th>
+                            <th>预报时间</th>
+                            <th>大小</th>
+                            <th>上传时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in files.items %}
+                        <tr>
+                            <td>{{ file.id }}</td>
+                            <td>
+                                <a href="{{ url_for('main.file_detail', file_id=file.id) }}">
+                                    {{ file.filename }}
+                                </a>
+                            </td>
+                            <td>{{ file.file_type }}</td>
+                            <td>
+                                {% if file.file_date %}
+                                {{ file.file_date.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if file.forecast_hour is not none %}
+                                {{ file.forecast_hour }}h
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if file.file_size %}
+                                {{ (file.file_size / 1024 / 1024) | round(2) }} MB
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ file.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('main.file_detail', file_id=file.id) }}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.file_download', file_id=file.id) }}" class="btn btn-sm btn-success">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页 -->
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if files.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.file_list', page=files.prev_num, **request.args) }}">上一页</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">上一页</span>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in files.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == files.page %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('main.file_list', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if files.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.file_list', page=files.next_num, **request.args) }}">下一页</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">下一页</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% else %}
+            <div class="alert alert-info">
+                <p class="mb-0">暂无文件记录。您可以 <a href="{{ url_for('main.file_upload') }}">上传文件</a> 来开始。</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 任务详情{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>任务详情</h1>
+        <div>
+            <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> 返回列表
+            </a>
+            {% if task.status == 'pending' and namelist_uploaded and input_files %}
+            <form action="{{ url_for('main.run_task', task_id=task.task_id) }}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-play"></i> 运行WRF
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <!-- 任务信息卡片 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">任务信息</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th style="width: 40%">任务ID</th>
+                            <td><code>{{ task.task_id }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>名称</th>
+                            <td>{{ task.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>状态</th>
+                            <td>
+                                {% if task.status == 'pending' %}
+                                <span class="badge bg-warning">等待中</span>
+                                {% elif task.status == 'running' %}
+                                <span class="badge bg-primary">运行中</span>
+                                {% elif task.status == 'completed' %}
+                                <span class="badge bg-success">已完成</span>
+                                {% elif task.status == 'failed' %}
+                                <span class="badge bg-danger">失败</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ task.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>创建时间</th>
+                            <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                        {% if task.description %}
+                        <tr>
+                            <th>描述</th>
+                            <td>{{ task.description }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <!-- 上传namelist表单 -->
+            {% if task.status == 'pending' %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">上传namelist.input</h5>
+                    {% if namelist_uploaded %}
+                    <span class="badge bg-success">已上传</span>
+                    {% else %}
+                    <span class="badge bg-warning">未上传</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if namelist_uploaded %}
+                    <div class="mb-3">
+                        <div class="alert alert-success">
+                            <p class="mb-0">已成功上传namelist.input文件！</p>
+                            <a href="{{ url_for('main.task_file', task_id=task.task_id, filename='namelist.input') }}" class="btn btn-sm btn-primary mt-2">下载</a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <form method="POST" action="{{ url_for('main.upload_namelist', task_id=task.task_id) }}" enctype="multipart/form-data">
+                        {{ namelist_form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ namelist_form.namelist_file.label(class="form-label") }}
+                            {{ namelist_form.namelist_file(class="form-control") }}
+                            {% if namelist_form.namelist_file.errors %}
+                            <div class="text-danger">
+                                {% for error in namelist_form.namelist_file.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">请上传WRF的namelist.input配置文件</div>
+                        </div>
+
+                        {{ namelist_form.submit(class="btn btn-primary") }}
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-8">
+            <!-- 气象数据文件上传 -->
+            {% if task.status == 'pending' %}
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">上传气象数据文件</h5>
+                    {% if input_files %}
+                    <span class="badge bg-success">已上传 {{ input_files|length }} 个文件</span>
+                    {% else %}
+                    <span class="badge bg-warning">未上传</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.upload_met_files', task_id=task.task_id) }}" enctype="multipart/form-data">
+                        {{ met_files_form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ met_files_form.met_files.label(class="form-label") }}
+                            {{ met_files_form.met_files(class="form-control") }}
+                            {% if met_files_form.met_files.errors %}
+                            <div class="text-danger">
+                                {% for error in met_files_form.met_files.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">请上传WPS处理后的NetCDF格式气象数据文件，可以选择多个文件一起上传</div>
+                        </div>
+
+                        {{ met_files_form.submit(class="btn btn-primary") }}
+                    </form>
+
+                    {% if input_files %}
+                    <div class="mt-4">
+                        <h6>已上传的文件</h6>
+                        <ul class="list-group">
+                            {% for file_path in input_files %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ file_path.split('/')[-1] }}
+                                <a href="{{ url_for('main.task_file', task_id=task.task_id, filename=file_path.split('/')[-1]) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download"></i> 下载
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 任务输出结果 -->
+            {% if task.status in ['completed', 'failed'] %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">任务输出</h5>
+                </div>
+                <div class="card-body">
+                    {% if task.output_files %}
+                    <div class="mb-3">
+                        <h6>输出文件</h6>
+                        <ul class="list-group">
+                            {% for file in task.get_output_files_list() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ file.name }}
+                                <a href="{{ file.url }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-download"></i> 下载
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <p class="mb-0">暂无输出文件。</p>
+                    </div>
+                    {% endif %}
+
+                    {% if task.message %}
+                    <div class="mb-3">
+                        <h6>系统消息</h6>
+                        <div class="alert {% if task.status == 'failed' %}alert-danger{% else %}alert-info{% endif %}">
+                            <pre class="mb-0" style="white-space: pre-wrap;">{{ task.message }}</pre>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 任务进度 -->
+            {% if task.status == 'running' %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">任务进度</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-center my-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p>WRF模型正在运行中，请耐心等待...</p>
+                        <p>开始时间：{{ task.started_at.strftime('%Y-%m-%d %H:%M:%S') if task.started_at else '未知' }}</p>
+                        {% if task.message %}
+                        <div class="alert alert-info">
+                            <pre class="mb-0" style="white-space: pre-wrap;">{{ task.message }}</pre>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // 如果任务正在运行，每10秒刷新页面一次
+    {% if task.status == 'running' %}
+    setTimeout(function() {
+        window.location.reload();
+    }, 10000);
+    {% endif %}
+</script>
+{% endblock %}

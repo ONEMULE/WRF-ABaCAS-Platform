@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 创建数据集{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>创建数据集</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>数据集信息</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('main.dataset_create') }}">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                    {% for error in form.name.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control", rows=3) }}
+                    {% for error in form.description.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.dataset_type.label(class="form-label") }}
+                    {{ form.dataset_type(class="form-select") }}
+                    {% for error in form.dataset_type.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.base_date.label(class="form-label") }}
+                    {{ form.base_date(class="form-control", type="datetime-local") }}
+                    {% for error in form.base_date.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                    <div class="form-text">可选。设置数据集的基准日期时间，例如模型运行的初始时间。</div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('main.dataset_list') }}" class="btn btn-outline-secondary">返回数据集列表</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

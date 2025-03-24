@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 数据集管理{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>数据集管理</h1>
+    
+    <div class="d-flex justify-content-between mb-3">
+        <div>
+            <a href="{{ url_for('main.dataset_create') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> 创建数据集
+            </a>
+        </div>
+        <div>
+            <a href="{{ url_for('main.file_list') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-file"></i> 文件管理
+            </a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5>数据集列表</h5>
+        </div>
+        <div class="card-body">
+            {% if datasets %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>类型</th>
+                            <th>基准日期</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dataset in datasets %}
+                        <tr>
+                            <td>{{ dataset.id }}</td>
+                            <td>
+                                <a href="{{ url_for('main.dataset_detail', dataset_id=dataset.id) }}">
+                                    {{ dataset.name }}
+                                </a>
+                            </td>
+                            <td>{{ dataset.dataset_type }}</td>
+                            <td>
+                                {% if dataset.base_date %}
+                                {{ dataset.base_date.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>{{ dataset.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('main.dataset_detail', dataset_id=dataset.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> 查看
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <p class="mb-0">暂无数据集记录。您可以 <a href="{{ url_for('main.dataset_create') }}">创建数据集</a> 来开始。</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

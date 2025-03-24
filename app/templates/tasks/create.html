@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 创建新任务{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">创建新的WRF任务</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                            <div class="text-danger">
+                                {% for error in form.name.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows=3) }}
+                            {% if form.description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.description.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">添加描述有助于识别不同的模拟任务</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <p class="mb-0"><strong>提示：</strong> 创建任务后，您需要上传：</p>
+                            <ul class="mb-0 mt-2">
+                                <li>WRF配置文件（namelist.input）</li>
+                                <li>WPS处理后的气象数据文件（.nc文件）</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('main.task_list') }}" class="btn btn-outline-secondary">返回任务列表</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 任务管理{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="h4 mb-0">WRF模拟任务列表</h2>
+            </div>
+            <div class="card-body">
+                {% if tasks %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>任务ID</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>气象数据</th>
+                                <th>消息</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td>{{ task.task_id[:8] }}...</td>
+                                <td>
+                                    <span class="badge {% if task.status == 'pending' %}bg-warning{% elif task.status == 'running' %}bg-primary{% elif task.status == 'completed' %}bg-success{% else %}bg-danger{% endif %}"
+                                          data-task-status data-task-id="{{ task.task_id }}">
+                                        {{ task.status }}
+                                    </span>
+                                </td>
+                                <td>{{ task.created_at }}</td>
+                                <td>{{ task.meteorological_file }}</td>
+                                <td><span data-task-message data-task-id="{{ task.task_id }}">{{ task.message }}</span></td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-info btn-sm task-status-btn" data-task-id="{{ task.task_id }}">
+                                            刷新状态
+                                        </button>
+
+                                        {% if task.status == 'pending' %}
+                                        <button class="btn btn-primary btn-sm task-run-btn" data-task-id="{{ task.task_id }}">
+                                            启动任务
+                                        </button>
+                                        {% endif %}
+
+                                        <div data-result-link-container data-task-id="{{ task.task_id }}">
+                                            {% if task.status == 'completed' %}
+                                            <a href="/results/{{ task.task_id }}" class="btn btn-success btn-sm">查看结果</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    暂无任务记录。<a href="/" class="alert-link">创建新任务</a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <a href="/" class="btn btn-primary">返回首页</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/task-monitor.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 任务结果{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">首页</a></li>
+                <li class="breadcrumb-item"><a href="/tasks">任务管理</a></li>
+                <li class="breadcrumb-item active">任务结果</li>
+            </ol>
+        </nav>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h4 mb-0">任务详情</h2>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3"><strong>任务ID:</strong></div>
+                    <div class="col-md-9">{{ task.task_id }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3"><strong>状态:</strong></div>
+                    <div class="col-md-9">
+                        {% if task.status == 'pending' %}
+                        <span class="badge bg-warning">等待中</span>
+                        {% elif task.status == 'running' %}
+                        <span class="badge bg-primary">运行中</span>
+                        {% elif task.status == 'completed' %}
+                        <span class="badge bg-success">已完成</span>
+                        {% elif task.status == 'error' %}
+                        <span class="badge bg-danger">错误</span>
+                        {% else %}
+                        <span class="badge bg-secondary">{{ task.status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3"><strong>创建时间:</strong></div>
+                    <div class="col-md-9">{{ task.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3"><strong>更新时间:</strong></div>
+                    <div class="col-md-9">{{ task.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3"><strong>消息:</strong></div>
+                    <div class="col-md-9">{{ task.message or '无消息' }}</div>
+                </div>
+
+                <button id="refresh-status-btn" class="btn btn-primary" data-task-id="{{ task.task_id }}">
+                    刷新状态
+                </button>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h4 mb-0">可视化结果</h2>
+            </div>
+            <div class="card-body">
+                {% if result_images %}
+                <div class="row">
+                    {% for image in result_images %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <img src="{{ url_for('main.result_file', task_id=task.task_id, filename=image) }}" class="card-img-top" alt="WRF结果可视化">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ image }}</h5>
+                                <a href="{{ url_for('main.result_file', task_id=task.task_id, filename=image) }}" class="btn btn-sm btn-secondary" download>下载图像</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    {% if task.status == 'completed' %}
+                        暂无可视化结果，请联系管理员。
+                    {% else %}
+                        任务尚未完成，请等待任务处理完成后查看结果。
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if task.status == 'completed' %}
+        <div class="card">
+            <div class="card-header">
+                <h2 class="h4 mb-0">数据下载</h2>
+            </div>
+            <div class="card-body">
+                <p>您可以下载以下WRF模拟结果文件:</p>
+                <div id="result-files-list">
+                    <!-- 结果文件列表将通过AJAX加载 -->
+                    <div class="text-center py-3" id="loading-files">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshBtn = document.getElementById('refresh-status-btn');
+    const resultFilesList = document.getElementById('result-files-list');
+    const loadingFiles = document.getElementById('loading-files');
+
+    // 刷新任务状态
+    refreshBtn.addEventListener('click', function() {
+        const taskId = this.getAttribute('data-task-id');
+
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> 刷新中...';
+
+        fetch(`/api/tasks/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                // 刷新页面以显示最新状态
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('获取任务状态失败:', error);
+                alert('刷新状态失败，请重试!');
+            })
+            .finally(() => {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = '刷新状态';
+            });
+    });
+
+    // 如果任务已完成，加载结果文件列表
+    if (document.querySelector('.badge.bg-success')) {
+        const taskId = refreshBtn.getAttribute('data-task-id');
+
+        fetch(`/api/results/files/${taskId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (loadingFiles) {
+                    loadingFiles.remove();
+                }
+
+                if (data.files && data.files.length > 0) {
+                    const fileList = document.createElement('ul');
+                    fileList.className = 'list-group';
+
+                    data.files.forEach(file => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+
+                        listItem.innerHTML = `
+                            ${file.name}
+                            <a href="${file.url}" class="btn btn-sm btn-primary" download>下载</a>
+                        `;
+
+                        fileList.appendChild(listItem);
+                    });
+
+                    resultFilesList.appendChild(fileList);
+                } else {
+                    resultFilesList.innerHTML = '<div class="alert alert-warning">暂无可下载的结果文件</div>';
+                }
+            })
+            .catch(error => {
+                console.error('获取结果文件列表失败:', error);
+                if (loadingFiles) {
+                    loadingFiles.remove();
+                }
+                resultFilesList.innerHTML = '<div class="alert alert-danger">加载结果文件失败，请重试</div>';
+            });
+    }
+});
+</script>
+{% endblock %}

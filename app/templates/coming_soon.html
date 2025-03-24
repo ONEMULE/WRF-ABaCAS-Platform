@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}WRF模型控制系统 - 功能开发中{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="h4 mb-0">功能开发中</h2>
+        </div>
+        <div class="card-body text-center">
+            <i class="fas fa-tools fa-5x text-muted mb-3"></i>
+            <h3>{{ feature }} 功能正在开发中</h3>
+            <p class="lead">我们正在努力完善该功能，敬请期待！</p>
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">返回首页</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

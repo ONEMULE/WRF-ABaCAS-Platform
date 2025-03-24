@@ -1,0 +1,56 @@
+/* 主要样式 */
+
+/* 页面全局样式 */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex: 1;
+}
+
+/* 任务状态徽章样式 */
+.badge {
+    font-size: 0.85em;
+    padding: 0.35em 0.65em;
+}
+
+/* 任务详情页的图像样式 */
+.card-img-top {
+    height: 300px;
+    object-fit: contain;
+    background-color: #f8f9fa;
+}
+
+/* 表单元素样式 */
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* 导航样式 */
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* 页脚样式 */
+.footer {
+    margin-top: auto;
+}
+
+/* 加载指示器样式 */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.2em;
+}
+
+/* 结果文件列表样式 */
+#result-files-list .list-group-item {
+    transition: background-color 0.2s;
+}
+
+#result-files-list .list-group-item:hover {
+    background-color: #f8f9fa;
+}
