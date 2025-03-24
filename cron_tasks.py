@@ -1,13 +1,13 @@
 # cron_tasks.py
 #!/usr/bin/env python3
 """
-定时任务脚本，用于检查WRF任务状态
-可以通过crontab定时执行此脚本
+Cron job script for checking WRF task status
+This script can be scheduled to run periodically via crontab
 """
 import os
 import sys
 
-# 添加项目根目录到Python路径
+# Add project root directory to Python path
 sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 from app import create_app
 from app.tasks import check_running_tasks

@@ -9,20 +9,20 @@ from app import db
 from app.models import NamelistConfig, WrfTask
 from app.forms import CreateTaskForm, UploadNamelistForm, UploadMetFilesForm, TaskNamelistUploadForm
 
-# 修改这里：将Blueprint名称从'main'改为空字符串，以确保它匹配根路径
+# Modified here: Change Blueprint name from 'main' to empty string to ensure it matches root path
 bp = Blueprint('main', __name__)
 
 # Index page
 @bp.route('/')
 @bp.route('/index')
 def index():
-    """首页"""
-    # 确认有模板可以渲染
+    """Index page"""
+    # Confirm template can be rendered
     return render_template('index.html')
 
-# 设置上传文件的目录
+# Set upload file directory
 def get_task_upload_dir(task_id):
-    """获取任务的文件上传目录"""
+    """Get task file upload directory"""
     task_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], task_id)
     if not os.path.exists(task_dir):
         os.makedirs(task_dir)
@@ -31,17 +31,17 @@ def get_task_upload_dir(task_id):
 # Namelist configuration routes
 @bp.route('/namelists')
 def namelist_list():
-    """Namelist配置列表页面"""
+    """Namelist configuration list page"""
     namelists = NamelistConfig.query.all()
     return render_template('wrf/namelist_list.html', namelists=namelists)
 
 @bp.route('/namelists/<int:namelist_id>')
 def namelist_detail(namelist_id):
-    """显示namelist配置详情"""
-    # 获取namelist配置
+    """Show namelist configuration details"""
+    # Get namelist configuration
     namelist = NamelistConfig.query.get_or_404(namelist_id)
 
-    # 读取namelist文件内容
+    # Read namelist file content
     namelist_input_content = ""
     namelist_wps_content = ""
 
@@ -58,20 +58,20 @@ def namelist_detail(namelist_id):
                           namelist_input_content=namelist_input_content,
                           namelist_wps_content=namelist_wps_content)
 
-# 任务管理路由
+# Task management routes
 @bp.route('/tasks')
 def task_list():
-    """任务列表页面"""
+    """Task list page"""
     tasks = WrfTask.query.order_by(WrfTask.created_at.desc()).all()
     return render_template('tasks/list.html', tasks=tasks)
 
 @bp.route('/tasks/create', methods=['GET', 'POST'])
 def create_task():
-    """创建新任务"""
+    """Create new task"""
     form = CreateTaskForm()
 
     if form.validate_on_submit():
-        # 创建新任务
+        # Create new task
         task = WrfTask(
             task_id=str(uuid.uuid4()),
             name=form.name.data,
@@ -81,7 +81,7 @@ def create_task():
         db.session.add(task)
         db.session.commit()
 
-        # 创建任务目录
+        # Create task directory
         task_dir = get_task_upload_dir(task.task_id)
 
         flash('任务创建成功！请继续上传所需文件。', 'success')
@@ -91,20 +91,20 @@ def create_task():
 
 @bp.route('/tasks/<task_id>')
 def task_detail(task_id):
-    """任务详情页面"""
+    """Task detail page"""
     task = WrfTask.query.filter_by(task_id=task_id).first_or_404()
 
-    # 使用任务特定的表单
+    # Use task specific form
     namelist_form = TaskNamelistUploadForm()
     namelist_form.task_id.data = task_id
 
     met_files_form = UploadMetFilesForm()
     met_files_form.task_id.data = task_id
 
-    # 获取已上传的文件列表
+    # Get uploaded files list
     input_files = task.get_input_files_list()
 
-    # 检查是否已上传namelist.input
+    # Check if namelist.input is uploaded
     namelist_uploaded = task.namelist_input is not None and task.namelist_input.strip() != ''
 
     return render_template('tasks/detail.html',
@@ -116,19 +116,19 @@ def task_detail(task_id):
 
 @bp.route('/tasks/<task_id>/upload/namelist', methods=['POST'])
 def upload_namelist(task_id):
-    """上传namelist.input文件"""
+    """Upload namelist.input file"""
     task = WrfTask.query.filter_by(task_id=task_id).first_or_404()
-    form = TaskNamelistUploadForm()  # 使用任务特定的表单
+    form = TaskNamelistUploadForm()  # Use task specific form
     if form.validate_on_submit():
         namelist_file = form.namelist_file.data
         filename = secure_filename('namelist.input')
 
-        # 保存文件
+        # Save file
         task_dir = get_task_upload_dir(task_id)
         file_path = os.path.join(task_dir, filename)
         namelist_file.save(file_path)
 
-        # 读取文件内容并存储到数据库
+        # Read file content and store to database
         with open(file_path, 'r') as f:
             task.namelist_input = f.read()
 
@@ -143,7 +143,7 @@ def upload_namelist(task_id):
 
 @bp.route('/tasks/<task_id>/upload/metfiles', methods=['POST'])
 def upload_met_files(task_id):
-    """上传气象数据文件"""
+    """Upload meteorological data files"""
     task = WrfTask.query.filter_by(task_id=task_id).first_or_404()
     form = UploadMetFilesForm()
 
@@ -159,7 +159,7 @@ def upload_met_files(task_id):
                 file_path = os.path.join(task_dir, filename)
                 file.save(file_path)
 
-                # 添加文件路径到任务的输入文件列表
+                # Add file path to task input files list
                 task.add_input_file(file_path)
                 uploaded_files.append(filename)
 
@@ -177,141 +177,141 @@ def upload_met_files(task_id):
 
 @bp.route('/tasks/<task_id>/files/<filename>')
 def task_file(task_id, filename):
-    """下载任务文件"""
+    """Download task file"""
     task_dir = get_task_upload_dir(task_id)
     return send_from_directory(task_dir, filename)
 
 @bp.route('/tasks/<task_id>/delete')
 def delete_task(task_id):
-    """删除任务"""
+    """Delete task"""
     task = WrfTask.query.filter_by(task_id=task_id).first_or_404()
 
-    # 删除任务目录及文件
+    # Delete task directory and files
     task_dir = get_task_upload_dir(task_id)
     if os.path.exists(task_dir):
         for file in os.listdir(task_dir):
             os.remove(os.path.join(task_dir, file))
         os.rmdir(task_dir)
 
-    # 删除数据库记录
+    # Delete database record
     db.session.delete(task)
     db.session.commit()
 
     flash('任务已成功删除！', 'success')
     return redirect(url_for('main.task_list'))
 
-# 文件管理路由
+# File management routes
 @bp.route('/files')
 def file_list():
-    """文件列表页面"""
-    # 简单实现，稍后可完善
+    """File list page"""
+    # Simple implementation, can be improved later
     return render_template('files/list.html')
 
 @bp.route('/files/upload')
 def file_upload():
-    """文件上传页面"""
+    """File upload page"""
     return render_template('files/upload.html')
 
 @bp.route('/files/batch')
 def batch_process():
-    """批量处理页面"""
+    """Batch process page"""
     return render_template('files/batch_process.html')
 
-# WRF管理路由
+# WRF management routes
 @bp.route('/wrf/namelist/upload', methods=['GET', 'POST'])
 def namelist_upload():
-    """上传namelist配置页面"""
-    # 创建表单实例
+    """Upload namelist configuration page"""
+    # Create form instance
     form = UploadNamelistForm()
 
-    # 处理表单提交
+    # Handle form submission
     if form.validate_on_submit():
-        # 创建新的NamelistConfig对象
+        # Create new NamelistConfig object
         namelist_config = NamelistConfig(
             name=f"Namelist配置 {datetime.now().strftime('%Y-%m-%d %H:%M')}",
             description=form.description.data
         )
 
-        # 保存namelist.input文件
+        # Save namelist.input file
         input_file = form.namelist_input.data
         input_filename = secure_filename(input_file.filename)
         upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], 'namelists')
 
-        # 确保上传目录存在
+        # Ensure upload directory exists
         if not os.path.exists(upload_dir):
             os.makedirs(upload_dir)
 
-        # 保存文件路径
+        # Save file path
         input_path = os.path.join(upload_dir, input_filename)
         input_file.save(input_path)
         namelist_config.namelist_input_path = input_path
 
-        # 保存namelist.wps文件
+        # Save namelist.wps file
         wps_file = form.namelist_wps.data
         wps_filename = secure_filename(wps_file.filename)
         wps_path = os.path.join(upload_dir, wps_filename)
         wps_file.save(wps_path)
         namelist_config.namelist_wps_path = wps_path
 
-        # 保存到数据库
+        # Save to database
         db.session.add(namelist_config)
         db.session.commit()
 
         flash('Namelist配置文件上传成功！', 'success')
         return redirect(url_for('main.namelist_list'))
 
-    # GET请求或表单验证失败
+    # GET request or form validation failed
     return render_template('wrf/namelist_upload.html', form=form)
 
 @bp.route('/wrf/run')
 def wrf_run():
-    """运行WRF页面"""
+    """Run WRF page"""
     return render_template('wrf/run.html')
 
 @bp.route('/wrf/tasks')
 def wrf_task_list():
-    """WRF任务列表页面"""
+    """WRF task list page"""
     return render_template('wrf/task_list.html')
 
-# 新增：运行WRF任务路由
+# New: Run WRF task route
 @bp.route('/tasks/<task_id>/run', methods=['POST'])
 def run_task(task_id):
-    """运行WRF任务"""
+    """Run WRF task"""
     task = WrfTask.query.filter_by(task_id=task_id).first_or_404()
     
-    # 检查任务状态
+    # Check task status
     if task.status not in ['pending']:
         flash('只能运行处于等待状态的任务!', 'warning')
         return redirect(url_for('main.task_detail', task_id=task_id))
     
-    # 检查是否有必需的输入文件
+    # Check if required input files exist
     if not task.namelist_input:
         flash('任务缺少namelist.input文件!', 'warning')
         return redirect(url_for('main.task_detail', task_id=task_id))
     
-    # 检查是否有气象数据文件
+    # Check if meteorological data files exist
     input_files = task.get_input_files_list()
     if not input_files:
         flash('任务缺少气象数据文件!', 'warning')
         return redirect(url_for('main.task_detail', task_id=task_id))
     
     try:
-        # 创建WRF连接器并提交任务
+        # Create WRF connector and submit task
         from app.wrf.connector import WrfConnector
         connector = WrfConnector(current_app.config)
         
-        # 设置任务状态为运行中
+        # Set task status to running
         task.status = 'running'
         task.started_at = datetime.utcnow()
         db.session.commit()
         
-        # 提交任务
+        # Submit task
         success, message = connector.submit_job(task)
         
         if success:
             flash(f'成功提交WRF任务: {message}', 'success')
         else:
-            # 如果提交失败，重置状态
+            # If submission failed, reset status
             task.status = 'pending'
             task.started_at = None
             db.session.commit()
@@ -319,19 +319,19 @@ def run_task(task_id):
             
         return redirect(url_for('main.task_detail', task_id=task_id))
     except Exception as e:
-        # 发生异常时恢复任务状态
+        # Restore task status on exception
         task.status = 'pending'
         task.started_at = None
         db.session.commit()
         
         flash(f'运行WRF任务时发生错误: {str(e)}', 'danger')
-        current_app.logger.error(f'运行任务 {task_id} 时出错: {str(e)}')
+        current_app.logger.error(f'Error running task {task_id}: {str(e)}')
         return redirect(url_for('main.task_detail', task_id=task_id))
 
-# 新增：测试WRF连接
+# New: Test WRF connection
 @bp.route('/wrf/test_connection')
 def test_wrf_connection():
-    """测试WRF虚拟机连接"""
+    """Test WRF virtual machine connection"""
     try:
         from app.wrf.connector import WrfConnector
         connector = WrfConnector(current_app.config)

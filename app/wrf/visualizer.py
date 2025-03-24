@@ -1,5 +1,5 @@
 """
-WRF结果可视化模块
+WRF Results Visualization Module
 """
 import os
 import json
@@ -12,72 +12,69 @@ from netCDF4 import Dataset
 from flask import current_app, url_for
 import logging
 
-# 配置日志
+# Configure logging
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger('wrf_visualizer')
 
 
 class WrfVisualizer:
-    """WRF结果可视化类"""
-
+    """WRF Results Visualization Class"""
     def __init__(self, task_id):
-        """初始化可视化器
-
+        """Initialize visualizer
         Args:
-            task_id: WRF任务ID
+            task_id: WRF task ID
         """
         self.task_id = task_id
         self.result_dir = os.path.join(current_app.config['RESULTS_FOLDER'], task_id)
         self.viz_dir = os.path.join(self.result_dir, 'viz')
 
-        # 确保可视化目录存在
+        # Ensure visualization directory exists
         os.makedirs(self.viz_dir, exist_ok=True)
 
-        # 查找wrfout文件
+        # Find wrfout files
         self.wrfout_files = []
         if os.path.exists(self.result_dir):
             for filename in os.listdir(self.result_dir):
                 if filename.startswith('wrfout_'):
                     self.wrfout_files.append(os.path.join(self.result_dir, filename))
 
-        self.wrfout_files.sort()  # 按文件名排序
+        self.wrfout_files.sort()  # Sort by filename
 
     def visualize_results(self):
-        """可视化WRF结果"""
+        """Visualize WRF results"""
         if not self.wrfout_files:
-            logger.warning(f"任务 {self.task_id} 没有找到wrfout文件")
+            logger.warning(f"No wrfout files found for task {self.task_id}")
             return False
 
         try:
-            # 为每个输出文件生成可视化
+            # Generate visualizations for each output file
             for wrfout_file in self.wrfout_files:
                 self._visualize_file(wrfout_file)
 
-            logger.info(f"任务 {self.task_id} 的可视化已完成")
+            logger.info(f"Visualization completed for task {self.task_id}")
             return True
         except Exception as e:
-            logger.error(f"可视化任务 {self.task_id} 失败: {str(e)}")
+            logger.error(f"Failed to visualize task {self.task_id}: {str(e)}")
             return False
 
     def _visualize_file(self, wrfout_file):
-        """可视化单个wrfout文件
-
+        """Visualize single wrfout file
         Args:
-            wrfout_file: wrfout文件路径
+            wrfout_file: wrfout file path
         """
         filename = os.path.basename(wrfout_file)
-        logger.info(f"正在可视化文件: {filename}")
+        logger.info(f"Visualizing file: {filename}")
 
         try:
-            # 打开NetCDF文件
+            # Open NetCDF file
             ncfile = Dataset(wrfout_file)
 
-            # 获取时间信息
+            # Get time information
             times = ncfile.variables['Times'][:]
             time_str = b''.join(times[0]).decode('utf-8')
 
-            # 生成不同变量的可视化
+            # Generate visualizations for different variables
             self._plot_temperature(ncfile, filename, time_str)
             self._plot_wind(ncfile, filename, time_str)
             self._plot_precipitation(ncfile, filename, time_str)
@@ -85,110 +82,107 @@ class WrfVisualizer:
 
             ncfile.close()
         except Exception as e:
-            logger.error(f"可视化文件 {filename} 失败: {str(e)}")
+            logger.error(f"Failed to visualize file {filename}: {str(e)}")
 
     def _plot_temperature(self, ncfile, filename, time_str):
-        """绘制温度场
-
+        """Plot temperature field
         Args:
-            ncfile: NetCDF文件对象
-            filename: 文件名
-            time_str: 时间字符串
+            ncfile: NetCDF file object
+            filename: File name
+            time_str: Time string
         """
         try:
-            # 获取变量
-            t2 = ncfile.variables['T2'][0] - 273.15  # 转换为摄氏度
+            # Get variables
+            t2 = ncfile.variables['T2'][0] - 273.15  # Convert to Celsius
             lats = ncfile.variables['XLAT'][0]
             lons = ncfile.variables['XLONG'][0]
 
-            # 创建图形
+            # Create figure
             fig = plt.figure(figsize=(10, 8))
             ax = plt.axes(projection=ccrs.PlateCarree())
 
-            # 添加地图特征
+            # Add map features
             ax.add_feature(cfeature.COASTLINE)
             ax.add_feature(cfeature.BORDERS, linestyle=':')
 
-            # 绘制等值线填充
+            # Draw contour fill
             levels = np.linspace(t2.min(), t2.max(), 15)
             cf = ax.contourf(lons, lats, t2, levels=levels, cmap=get_cmap("jet"))
 
-            # 添加颜色条和标题
+            # Add colorbar and title
             cbar = plt.colorbar(cf, ax=ax, orientation='horizontal', pad=0.05)
-            cbar.set_label('温度 (°C)')
+            cbar.set_label('Temperature (°C)')
 
-            plt.title(f'2米温度 - {time_str}')
+            plt.title(f'2-meter Temperature - {time_str}')
 
-            # 保存图像
+            # Save image
             output_file = os.path.join(self.viz_dir, f'temp_{os.path.splitext(filename)[0]}.png')
             plt.savefig(output_file, dpi=150, bbox_inches='tight')
             plt.close(fig)
 
-            logger.info(f"已生成温度场可视化: {output_file}")
+            logger.info(f"Temperature field visualization generated: {output_file}")
         except Exception as e:
-            logger.error(f"绘制温度场失败: {str(e)}")
+            logger.error(f"Failed to plot temperature field: {str(e)}")
 
     def _plot_wind(self, ncfile, filename, time_str):
-        """绘制风场
-
+        """Plot wind field
         Args:
-            ncfile: NetCDF文件对象
-            filename: 文件名
-            time_str: 时间字符串
+            ncfile: NetCDF file object
+            filename: File name
+            time_str: Time string
         """
         try:
-            # 获取变量
+            # Get variables
             u10 = ncfile.variables['U10'][0]
             v10 = ncfile.variables['V10'][0]
             lats = ncfile.variables['XLAT'][0]
             lons = ncfile.variables['XLONG'][0]
 
-            # 计算风速
+            # Calculate wind speed
             wind_speed = np.sqrt(u10*u10 + v10*v10)
 
-            # 创建图形
+            # Create figure
             fig = plt.figure(figsize=(10, 8))
             ax = plt.axes(projection=ccrs.PlateCarree())
 
-            # 添加地图特征
+            # Add map features
             ax.add_feature(cfeature.COASTLINE)
             ax.add_feature(cfeature.BORDERS, linestyle=':')
 
-            # 绘制等值线填充
+            # Draw contour fill
             levels = np.linspace(0, np.max(wind_speed), 15)
             cf = ax.contourf(lons, lats, wind_speed, levels=levels, cmap=get_cmap("viridis"))
 
-            # 绘制风向箭头
-            skip = 8  # 箭头间隔
+            # Draw wind direction arrows
+            skip = 8  # Arrow spacing
             ax.quiver(lons[::skip, ::skip], lats[::skip, ::skip],
                       u10[::skip, ::skip], v10[::skip, ::skip],
                       scale=50, color='white')
 
-            # 添加颜色条和标题
+            # Add colorbar and title
             cbar = plt.colorbar(cf, ax=ax, orientation='horizontal', pad=0.05)
-            cbar.set_label('风速 (m/s)')
+            cbar.set_label('Wind Speed (m/s)')
 
-            plt.title(f'10米风场 - {time_str}')
+            plt.title(f'10-meter Wind Field - {time_str}')
 
-            # 保存图像
+            # Save image
             output_file = os.path.join(self.viz_dir, f'wind_{os.path.splitext(filename)[0]}.png')
             plt.savefig(output_file, dpi=150, bbox_inches='tight')
             plt.close(fig)
 
-            logger.info(f"已生成风场可视化: {output_file}")
+            logger.info(f"Wind field visualization generated: {output_file}")
         except Exception as e:
-            logger.error(f"绘制风场失败: {str(e)}")
+            logger.error(f"Failed to plot wind field: {str(e)}")
 
     def _plot_precipitation(self, ncfile, filename, time_str):
-        """绘制降水场
-
+        """Plot precipitation field
         Args:
-            ncfile: NetCDF文件对象
-            filename: 文件名
-            time_str: 时间字符串
+            ncfile: NetCDF file object
+            filename: File name
+            time_str: Time string
         """
         try:
-            # 获取变量
+            # Get variables
             if 'RAINC' in ncfile.variables and 'RAINNC' in ncfile.variables:
                 rainc = ncfile.variables['RAINC'][0]
                 rainnc = ncfile.variables['RAINNC'][0]
@@ -197,99 +191,97 @@ class WrfVisualizer:
                 lats = ncfile.variables['XLAT'][0]
                 lons = ncfile.variables['XLONG'][0]
 
-                # 创建图形
+                # Create figure
                 fig = plt.figure(figsize=(10, 8))
                 ax = plt.axes(projection=ccrs.PlateCarree())
 
-                # 添加地图特征
+                # Add map features
                 ax.add_feature(cfeature.COASTLINE)
                 ax.add_feature(cfeature.BORDERS, linestyle=':')
 
-                # 绘制等值线填充
+                # Draw contour fill
                 levels = [0, 0.1, 0.5, 1, 2, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100]
                 cf = ax.contourf(lons, lats, rain_total, levels=levels, cmap=get_cmap("Blues"))
 
-                # 添加颜色条和标题
+                # Add colorbar and title
                 cbar = plt.colorbar(cf, ax=ax, orientation='horizontal', pad=0.05)
-                cbar.set_label('累积降水量 (mm)')
+                cbar.set_label('Accumulated Precipitation (mm)')
 
-                plt.title(f'累积降水量 - {time_str}')
+                plt.title(f'Accumulated Precipitation - {time_str}')
 
-                # 保存图像
+                # Save image
                 output_file = os.path.join(self.viz_dir, f'rain_{os.path.splitext(filename)[0]}.png')
                 plt.savefig(output_file, dpi=150, bbox_inches='tight')
                 plt.close(fig)
 
-                logger.info(f"已生成降水场可视化: {output_file}")
+                logger.info(f"Precipitation field visualization generated: {output_file}")
             else:
-                logger.warning("文件中没有找到降水变量")
+                logger.warning("No precipitation variables found in the file")
         except Exception as e:
-            logger.error(f"绘制降水场失败: {str(e)}")
+            logger.error(f"Failed to plot precipitation field: {str(e)}")
 
     def _plot_pressure(self, ncfile, filename, time_str):
-        """绘制气压场
-
+        """Plot pressure field
         Args:
-            ncfile: NetCDF文件对象
-            filename: 文件名
-            time_str: 时间字符串
+            ncfile: NetCDF file object
+            filename: File name
+            time_str: Time string
         """
         try:
-            # 获取变量
-            psfc = ncfile.variables['PSFC'][0] / 100.0  # 转换为百帕
+            # Get variables
+            psfc = ncfile.variables['PSFC'][0] / 100.0  # Convert to hPa
             lats = ncfile.variables['XLAT'][0]
             lons = ncfile.variables['XLONG'][0]
 
-            # 创建图形
+            # Create figure
             fig = plt.figure(figsize=(10, 8))
             ax = plt.axes(projection=ccrs.PlateCarree())
 
-            # 添加地图特征
+            # Add map features
             ax.add_feature(cfeature.COASTLINE)
             ax.add_feature(cfeature.BORDERS, linestyle=':')
 
-            # 绘制等值线填充
+            # Draw contour fill
             levels = np.linspace(np.min(psfc), np.max(psfc), 15)
             cf = ax.contourf(lons, lats, psfc, levels=levels, cmap=get_cmap("rainbow"))
 
-            # 添加等值线
+            # Add contour lines
             cs = ax.contour(lons, lats, psfc, levels=levels, colors='black', linewidths=0.5)
             plt.clabel(cs, inline=1, fontsize=8, fmt='%1.0f')
 
-            # 添加颜色条和标题
+            # Add colorbar and title
             cbar = plt.colorbar(cf, ax=ax, orientation='horizontal', pad=0.05)
-            cbar.set_label('地面气压 (hPa)')
+            cbar.set_label('Surface Pressure (hPa)')
 
-            plt.title(f'地面气压 - {time_str}')
+            plt.title(f'Surface Pressure - {time_str}')
 
-            # 保存图像
+            # Save image
             output_file = os.path.join(self.viz_dir, f'pressure_{os.path.splitext(filename)[0]}.png')
             plt.savefig(output_file, dpi=150, bbox_inches='tight')
             plt.close(fig)
 
-            logger.info(f"已生成气压场可视化: {output_file}")
+            logger.info(f"Pressure field visualization generated: {output_file}")
         except Exception as e:
-            logger.error(f"绘制气压场失败: {str(e)}")
+            logger.error(f"Failed to plot pressure field: {str(e)}")
 
     def get_visualization_results(self):
-        """获取可视化结果
-
+        """Get visualization results
         Returns:
-            dict: 可视化结果字典，按类别组织
+            dict: Visualization results dictionary, organized by category
         """
-        # 如果可视化目录不存在或为空，先生成可视化
+        # If visualization directory does not exist or is empty, generate visualizations first
         if not os.path.exists(self.viz_dir) or not os.listdir(self.viz_dir):
             self.visualize_results()
 
-        # 组织可视化结果
+        # Organize visualization results
         results = {
-            "温度场": [],
-            "风场": [],
-            "降水场": [],
-            "气压场": []
+            "Temperature Field": [],
+            "Wind Field": [],
+            "Precipitation Field": [],
+            "Pressure Field": []
         }
 
-        # 检索可视化图像
+        # Retrieve visualization images
         if os.path.exists(self.viz_dir):
             for filename in os.listdir(self.viz_dir):
                 if not filename.endswith('.png'):
@@ -300,57 +292,56 @@ class WrfVisualizer:
                                    filename=f'results/{self.task_id}/viz/{filename}',
                                    _external=True)
 
-                # 根据文件名前缀分类
+                # Categorize by filename prefix
                 if filename.startswith('temp_'):
                     time_str = self._extract_time_from_filename(filename)
-                    results["温度场"].append({
-                        "title": f"2米温度 - {time_str}",
+                    results["Temperature Field"].append({
+                        "title": f"2-meter Temperature - {time_str}",
                         "path": file_path,
                         "url": file_url
                     })
                 elif filename.startswith('wind_'):
                     time_str = self._extract_time_from_filename(filename)
-                    results["风场"].append({
-                        "title": f"10米风场 - {time_str}",
+                    results["Wind Field"].append({
+                        "title": f"10-meter Wind Field - {time_str}",
                         "path": file_path,
                         "url": file_url
                     })
                 elif filename.startswith('rain_'):
                     time_str = self._extract_time_from_filename(filename)
-                    results["降水场"].append({
-                        "title": f"累积降水量 - {time_str}",
+                    results["Precipitation Field"].append({
+                        "title": f"Accumulated Precipitation - {time_str}",
                         "path": file_path,
                         "url": file_url
                     })
                 elif filename.startswith('pressure_'):
                     time_str = self._extract_time_from_filename(filename)
-                    results["气压场"].append({
-                        "title": f"地面气压 - {time_str}",
+                    results["Pressure Field"].append({
+                        "title": f"Surface Pressure - {time_str}",
                         "path": file_path,
                         "url": file_url
                     })
 
-        # 移除空类别
+        # Remove empty categories
         results = {k: v for k, v in results.items() if v}
 
         return results
 
     def _extract_time_from_filename(self, filename):
-        """从文件名中提取时间信息
-
+        """Extract time information from filename
         Args:
-            filename: 文件名
+            filename: File name
 
         Returns:
-            str: 时间字符串
+            str: Time string
         """
-        # 示例: temp_wrfout_d01_2022-01-01_00:00:00.png
+        # Example: temp_wrfout_d01_2022-01-01_00:00:00.png
         try:
             parts = filename.split('_')
             if len(parts) >= 4:
                 date_part = parts[3]
                 time_part = parts[4].split('.')[0] if len(parts) >= 5 else ""
                 return f"{date_part} {time_part}"
-            return "未知时间"
+            return "Unknown Time"
         except:
-            return "未知时间"
+            return "Unknown Time"

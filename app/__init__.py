@@ -18,7 +18,7 @@ def create_app(config_class=Config):
 
     # Initialize Flask extensions
     db.init_app(app)
-    # 确保结果目录存在
+    # Ensure results directory exists
     os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
     migrate.init_app(app, db)
 
@@ -29,12 +29,12 @@ def create_app(config_class=Config):
     # Add database initialization command
     @app.cli.command("init-db")
     def init_db_command():
-        """创建所有数据库表"""
-        from app.models import NamelistConfig, WrfTask  # 导入模型以确保它们被正确注册
-        click.echo("正在创建数据库表...")
+        """Create all database tables"""
+        from app.models import NamelistConfig, WrfTask  # Import models to ensure they are properly registered
+        click.echo("Creating database tables...")
         db.create_all()
-        click.echo("数据库表创建成功！")
-        
+        click.echo("Database tables created successfully!")
+
     # Add context processor for templates
     @app.context_processor
     def inject_now():

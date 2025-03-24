@@ -4,13 +4,13 @@ from wtforms import StringField, TextAreaField, SubmitField, MultipleFileField, 
 from wtforms.validators import DataRequired, Length, Optional
 
 class CreateTaskForm(FlaskForm):
-    """创建WRF任务的表单"""
+    """Form for creating WRF tasks"""
     name = StringField('任务名称', validators=[DataRequired(), Length(max=64)])
     description = TextAreaField('任务描述', validators=[Optional(), Length(max=500)])
     submit = SubmitField('创建任务')
 
 class UploadNamelistForm(FlaskForm):
-    """上传Namelist配置文件表单"""
+    """Form for uploading Namelist configuration files"""
     namelist_input = FileField('Namelist.input 文件', validators=[
         FileRequired(message='请选择namelist.input文件'),
         FileAllowed(['txt', 'input'], '只允许上传文本文件或.input文件')
@@ -25,7 +25,7 @@ class UploadNamelistForm(FlaskForm):
     submit = SubmitField('上传配置')
 
 class TaskNamelistUploadForm(FlaskForm):
-    """用于任务中上传namelist文件的表单"""
+    """Form for uploading namelist files in tasks"""
     task_id = HiddenField('任务ID')
     namelist_file = FileField('Namelist.input 文件', validators=[
         FileRequired(message='请选择namelist.input文件'),
@@ -34,7 +34,7 @@ class TaskNamelistUploadForm(FlaskForm):
     submit = SubmitField('上传Namelist')
 
 class UploadMetFilesForm(FlaskForm):
-    """上传NetCDF气象数据文件的表单"""
+    """Form for uploading NetCDF meteorological data files"""
     task_id = HiddenField('任务ID')
     met_files = MultipleFileField('气象数据文件', validators=[
         FileRequired()
