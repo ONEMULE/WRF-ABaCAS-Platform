@@ -6,6 +6,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import os
 from datetime import datetime
+import click
 
 # Create Flask extensions
 db = SQLAlchemy()
@@ -25,6 +26,15 @@ def create_app(config_class=Config):
     from app.routes import bp as main_bp
     app.register_blueprint(main_bp)
 
+    # Add database initialization command
+    @app.cli.command("init-db")
+    def init_db_command():
+        """创建所有数据库表"""
+        from app.models import NamelistConfig, WrfTask  # 导入模型以确保它们被正确注册
+        click.echo("正在创建数据库表...")
+        db.create_all()
+        click.echo("数据库表创建成功！")
+        
     # Add context processor for templates
     @app.context_processor
     def inject_now():
