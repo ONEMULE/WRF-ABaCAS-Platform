@@ -56,4 +56,3 @@ class WrfTask(db.Model):
         if not self.output_files:
             return []
         return json.loads(self.output_files)
-        return files
